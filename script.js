@@ -69,4 +69,4 @@ function displayForecast(response) {
 }
 
 document.querySelector("#search-form").addEventListener("submit", handleSearchSubmit);
-searchCity("New York");
+searchCity("Cape Town");
