@@ -1,47 +1,72 @@
-const apiKey = "5f472b7acba333cd8a035ea85a0d4d4c";
-const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+function refreshWeather(response) {
+    let temperatureElement = document.querySelector("#temperature");
+    let cityElement = document.querySelector("#city");
+    let descriptionElement = document.querySelector("#description");
+    let humidityElement = document.querySelector("#humidity");
+    let windSpeedElement = document.querySelector("#wind-speed");
+    let timeElement = document.querySelector("#time");
+    let date = new Date(response.data.time * 1000);
+    let iconElement = document.querySelector("#icon");
 
-const searchForm = document.getElementById("search-form");
-const cityInput = document.getElementById("city-input");
-const cityName = document.getElementById("city-name");
-const weatherIcon = document.getElementById("weather-icon");
-const temperature = document.getElementById("temperature");
-const windSpeed = document.getElementById("wind-speed");
-const weatherDescription = document.getElementById("weather-description");
+    iconElement.innerHTML = `<img src="${response.data.condition.icon_url}" class="weather-app-icon">`;
+    cityElement.innerHTML = response.data.city;
+    timeElement.innerHTML = formatDate(date);
+    descriptionElement.innerHTML = response.data.condition.description;
+    humidityElement.innerHTML = `${response.data.temperature.humidity}%`;
+    windSpeedElement.innerHTML = `${response.data.wind.speed} km/h`;
+    temperatureElement.innerHTML = Math.round(response.data.temperature.current);
+    getForecast(response.data.city);
+}
 
-async function getWeather(city) {
-  try {
-    const response = await fetch(apiUrl + city + `&appid=${apiKey}`);
-    if (!response.ok) {
-      throw new Error("City not found");
+function formatDate(date) {
+    let minutes = date.getMinutes();
+    let hours = date.getHours();
+    let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    let day = days[date.getDay()];
+
+    if (minutes < 10) {
+        minutes = `0${minutes}`;
     }
-    const data = await response.json();
-    displayWeather(data);
-  } catch (error) {
-    alert(error.message);
-  }
+    return `${day} ${hours}:${minutes}`;
 }
 
-function displayWeather(data) {
-  cityName.textContent = `Weather in ${data.name}`;
-  temperature.textContent = `${Math.round(data.main.temp)}°C`;
-  windSpeed.textContent = data.wind.speed;
-  weatherDescription.textContent = data.weather[0].description;
-  weatherIcon.src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-  weatherIcon.style.display = "block";
+function searchCity(city) {
+    let apiKey = "b0o0t6f043b716862abbd32513768230";
+    let apiUrl = `https://api.shecodes.io/weather/v1/current?query=${city}&key=${apiKey}&units=metric`;
+    axios.get(apiUrl).then(refreshWeather);
 }
 
+function handleSearchSubmit(event) {
+    event.preventDefault();
+    let searchInput = document.querySelector("#search-form-input");
+    searchCity(searchInput.value);
+}
 
-searchForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const city = cityInput.value.trim();
-  if (city) {
-    getWeather(city);
-    cityInput.value = "";
-  } else {
-    alert("Please enter a city name");
-  }
-});
+function getForecast(city) {
+    let apiKey = "b0o0t6f043b716862abbd32513768230";
+    let apiUrl = `https://api.shecodes.io/weather/v1/forecast?query=${city}&key=${apiKey}&units=metric`;
+    axios.get(apiUrl).then(displayForecast);
+}
 
+function displayForecast(response) {
+    let forecastElement = document.querySelector("#forecast");
+    let days = ["Tue", "Wed", "Thu", "Fri", "Sat"];
+    let forecastHTML = "";
 
-getWeather("Harare");
+    days.forEach(function(day) {
+        forecastHTML += `
+        <div class="weather-forecast-day">
+            <div class="weather-forecast-date">${day}</div>
+            <div class="weather-forecast-icon">🌤</div>
+            <div class="weather-forecast-temperatures">
+                <div class="weather-forecast-temperature"><strong>15°</strong></div>
+                <div class="weather-forecast-temperature">9°</div>
+            </div>
+        </div>`;
+    });
+
+    forecastElement.innerHTML = forecastHTML;
+}
+
+document.querySelector("#search-form").addEventListener("submit", handleSearchSubmit);
+searchCity("New York");
